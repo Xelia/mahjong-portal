@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 import pytz
@@ -60,12 +61,15 @@ def rating_details(request, slug, year=None, month=None, day=None):
             })
         return JsonResponse(data, safe=False)
 
+    graph_data = json.dumps(RatingResult.get_top10_graph_data(rating), default=float)
+
     return render(request, 'rating/details.html', {
         'rating': rating,
         'rating_results': rating_results,
         'rating_date': rating_date,
         'is_last': is_last,
-        'page': 'rating'
+        'page': 'rating',
+        'graph_data': graph_data,
     })
 
 

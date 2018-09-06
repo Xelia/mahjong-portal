@@ -1,8 +1,29 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n staticfiles %}
 
 {% block title %}
     {{ rating.name }}
+{% endblock %}
+
+{% block additional_js %}
+    <script src="{% static 'js/сhart.bundle.min.js' %}"></script>
+    <script>
+        var graph_data = {{ graph_data|safe }};
+        console.log(graph_data)
+        var myChart = new Chart('rating_chart', {
+            type: 'line',
+            data: {
+                datasets: graph_data
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time'
+                    }]
+                }
+            }
+        })
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -23,7 +44,7 @@
                     </a>
                 </p>
             {% endif %}
-
+            <canvas id="rating_chart" class="d-none d-md-block d-print-none"></canvas>
             {% include 'rating/_results_table.html' %}
         {% endif %}
     </div>

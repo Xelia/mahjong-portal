@@ -1,3 +1,7 @@
+from collections import defaultdict
+from datetime import date, timedelta
+from random import random, randint
+
 from django.db import models
 
 from mahjong_portal.models import BaseModel
@@ -83,6 +87,22 @@ class RatingResult(BaseModel):
                            .prefetch_related('player')
                            .prefetch_related('tournament')
                            .order_by('-tournament__end_date'))
+
+    @classmethod
+    def get_top10_graph_data(cls, rating):
+        data_by_players = defaultdict(list)
+        top_10_players = cls.objects.filter(rating=rating, is_last=True, place__lte=5).values_list('player_id', flat=True)
+        for result in cls.objects.filter(rating=rating, player_id__in=top_10_players, date__gte=date.today() - timedelta(days=365)).order_by('date'):
+            if data_by_players[result.player_id] and data_by_players[result.player_id][-1]['y'] == result.score:
+                data_by_players[result.player_id].pop()
+            data_by_players[result.player_id].append({'y': result.score, 'x': result.date.isoformat()})
+        return [{
+            'label': Player.objects.get(pk=player_id).full_name,
+            'data': data_by_players[player_id],
+            'fill': False,
+            'borderColor': 'rgb({},{},{})'.format(randint(0, 255), randint(0, 255), randint(0, 255)),
+            'cubicInterpolationMode': 'monotone',
+        } for player_id in data_by_players]
 
 
 class TournamentCoefficients(BaseModel):
